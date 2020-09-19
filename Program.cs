@@ -134,28 +134,29 @@ namespace AmongUsCapture
                 }
                 Console.WriteLine($"Game state: {state}");
 
-                if (state != oldState)
+                ulong guildID = Convert.ToUInt64(config["guildID"]);
+                var guild = _client.GetGuild(guildID);
+                if (state == GameState.TASKS)
                 {
-
-                    if (state == GameState.TASKS)
+                    IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
+                    SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
+                    var VCUsers = VCSocket.Users;
+                    foreach (var user in VCUsers)
                     {
-                        if ((owner as IVoiceState != null))
-                        {
-                            IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
-                            SocketVoiceChannel VCSocket = (SocketVoiceChannel) VC;
-                            foreach (Users)
-                        }
-                        Console.WriteLine("Shh!");
+                        await MuteUser(guild, user);
                     }
-                    else
+                    Console.WriteLine("Shh!");
+                }
+                else
+                {
+                    IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
+                    SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
+                    var VCUsers = VCSocket.Users;
+                    foreach (var user in VCUsers)
                     {
-                        if ((owner as IVoiceState != null))
-                        {
-                            IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
-
-                        }
-                        Console.WriteLine("Talky time!");
+                        await UnmuteUser(guild, user);
                     }
+                    Console.WriteLine("Talky time!");
                 }
                 oldState = state;
                 Thread.Sleep(2500);
@@ -192,6 +193,15 @@ namespace AmongUsCapture
             }
 
             return Task.CompletedTask;
+        }
+
+        public async Task MuteUser(IGuild guild, IUser user)
+        {
+            await (user as IGuildUser).ModifyAsync(x => x.Mute = true);
+        }
+        public async Task UnmuteUser(IGuild guild, IUser user)
+        {
+            await (user as IGuildUser).ModifyAsync(x => x.Mute = false);
         }
     }
 }
