@@ -1,5 +1,5 @@
 # AmongDiscord
-Expansion and Discord integration based on [AmongUsMemory](https://github.com/shlifedev/AmongUsMemory).
+Expansion and Discord integration of [AmongUsCapture](https://github.com/denverquane/amonguscapture), also takes inspiration from [AmongUsMemory](https://github.com/shlifedev/AmongUsMemory).
 
 ## Support
 To use my bot or to ask questions about this specific fork, join my Discord.  
