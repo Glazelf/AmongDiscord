@@ -31,7 +31,7 @@ namespace AmongUsCapture
         static int tableWidth = 100;
         private const string ConfigPath = "config.json";
 
-        private static string[] playerColors = new string[] { "red", "blue", "green", "pink", "orange", "yellow", "black", "white", "purple", "brown", "cyan", "lime" };
+        private static string[] playerColors = new string[] { "Red", "Blue", "Green", "Pink", "Orange", "Yellow", "Black", "White", "Purple", "Brown", "Cyan", "Lime" };
         public static void Main(string[] args)
             => new Program().MainAsync().GetAwaiter().GetResult();
         public async Task MainAsync()
@@ -112,13 +112,33 @@ namespace AmongUsCapture
                     playerAddrPtr += 4;
                 }
 
+                Console.Clear();
                 foreach (PlayerInfo pi in allPlayerInfos)
                 {
-                    Console.WriteLine($"Player ID {pi.PlayerId}; Name: {ProcessMemory.ReadString((IntPtr)pi.PlayerName)}; Color: {playerColors[pi.ColorId]}; Dead: " + ((pi.IsDead > 0) ? "yes" : "no") + $"Impostor: {pi.IsImpostor}");
+                    var IDString = $"ID: {pi.PlayerId}";
+                    var NameString = $"Name: {ProcessMemory.ReadString((IntPtr)pi.PlayerName)}";
+                    var ColorString = $"Color: {playerColors[pi.ColorId]}";
+                    var ImpostorString = $"Impostor: {((pi.IsImpostor > 0) ? "Yes" : "No")}";
+                    var DeadString = $"Dead: {((pi.IsDead > 0) ? "Yes" : "No")}";
+                    var DisconnectedString = $"Disconnected: {((pi.Disconnected > 0) ? "Yes" : "No")}";
+                    if (pi.IsImpostor > 0) Console.ForegroundColor = ConsoleColor.Cyan;
+                    if (pi.IsDead > 0) Console.ForegroundColor = ConsoleColor.Red;
+                    if (pi.Disconnected > 0) Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine($"{IDString,-2} {NameString,-15} {ColorString,-15} {ImpostorString,-15} {DeadString,-10} {DisconnectedString}");
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
+                Console.WriteLine($"Game state: {state}");
+
                 if (state != oldState)
                 {
-                    Console.WriteLine("State changed to {0}", state);
+                    if (state == GameState.DISCUSSION)
+                    {
+                        Console.WriteLine("Discussion started");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Nondiscussion lol");
+                    }
                 }
 
                 oldState = state;
@@ -129,6 +149,67 @@ namespace AmongUsCapture
         private static bool ExileEndsGame()
         {
             return false;
+        }
+
+        public class CommandHandler
+        {
+            private readonly DiscordSocketClient _client;
+            private readonly CommandService _commands;
+
+            // Retrieve client and CommandService instance via ctor
+            public CommandHandler(DiscordSocketClient client, CommandService commands)
+            {
+                _commands = commands;
+                _client = client;
+            }
+
+            public async Task InstallCommandsAsync()
+            {
+                // Hook the MessageReceived event into our command handler
+                _client.MessageReceived += HandleCommandAsync;
+
+                await _commands.AddModulesAsync(assembly: Assembly.GetEntryAssembly(),
+                                                services: null);
+            }
+
+            private async Task HandleCommandAsync(SocketMessage messageParam)
+            {
+                // Don't process the command if it was a system message
+                var message = messageParam as SocketUserMessage;
+                if (message == null) return;
+
+                // Create a number to track where the prefix ends and the command begins
+                int argPos = 0;
+
+                // Determine if the message is a command based on the prefix and make sure no bots trigger commands
+                if (!(message.HasCharPrefix('!', ref argPos) ||
+                    message.HasMentionPrefix(_client.CurrentUser, ref argPos)) ||
+                    message.Author.IsBot)
+                    return;
+
+                // Create a WebSocket-based command context based on the message
+                var context = new SocketCommandContext(_client, message);
+
+                // Execute the command with the command context we just
+                // created, along with the service provider for precondition checks.
+                await _commands.ExecuteAsync(
+                    context: context,
+                    argPos: argPos,
+                    services: null);
+            }
+        }
+
+        public class InfoModule : ModuleBase<SocketCommandContext>
+        {
+            [Command("help")]
+            [Summary("Replies with command list.")]
+            public Task HelpAsync([Remainder][Summary("The text to echo")] string echo)
+                => ReplyAsync(echo);
+
+            [Command("info")]
+            [Summary("Replies with bot info.")]
+            public Task InfoAsync([Remainder][Summary("The text to echo")] string echo)
+=> ReplyAsync(echo);
         }
     }
 }
