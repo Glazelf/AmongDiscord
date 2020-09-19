@@ -34,7 +34,7 @@ namespace AmongUsCapture
                         {
                             uint moduleSize = totalModules / (uint)IntPtr.Size;
                             StringBuilder stringBuilder = new StringBuilder(260);
-                            for (uint count = 0;  count < moduleSize; count++)
+                            for (uint count = 0; count < moduleSize; count++)
                             {
                                 stringBuilder.Clear();
                                 if (WinAPI.GetModuleFileNameEx(process.Handle, buffer[count], stringBuilder, (uint)stringBuilder.Capacity) == 0u)

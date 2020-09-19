@@ -1,7 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Reflection;
+using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Microsoft.Extensions;
+using Microsoft.Extensions.Configuration;
+
 
 namespace AmongUsCapture
 {
@@ -18,10 +27,24 @@ namespace AmongUsCapture
         private static IntPtr GameAssemblyPtr = IntPtr.Zero;
         private static IntPtr UnityPlayerPtr = IntPtr.Zero;
         private static GameState oldState = GameState.LOBBY;
+        private DiscordSocketClient _client;
+        static int tableWidth = 100;
+        private const string ConfigPath = "config.json";
 
-        private static string[] playerColors = new string[]{"red", "blue", "green", "pink", "orange", "yellow", "black", "white", "purple", "brown", "cyan", "lime"};
-        static void Main()
+        private static string[] playerColors = new string[] { "red", "blue", "green", "pink", "orange", "yellow", "black", "white", "purple", "brown", "cyan", "lime" };
+        public static void Main(string[] args)
+            => new Program().MainAsync().GetAwaiter().GetResult();
+        public async Task MainAsync()
         {
+            var configurationBuilder = new ConfigurationBuilder()
+       .AddJsonFile("config.json");
+            var myConfiguration = configurationBuilder.Build();
+            string token = myConfiguration["token"];
+
+            _client = new DiscordSocketClient();
+
+            await _client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
+            await _client.StartAsync();
 
             while (true)
             {
@@ -59,7 +82,7 @@ namespace AmongUsCapture
                 bool inGame = ProcessMemory.Read<bool>(UnityPlayerPtr, 0x127B310, 0xF4, 0x18, 0xA8);
                 bool inMeeting = ProcessMemory.Read<bool>(UnityPlayerPtr, 0x12A7A14, 0x64, 0x54, 0x18);
                 int meetingHudState = ProcessMemory.Read<int>(GameAssemblyPtr, 0xDA58D0, 0x5C, 0, 0x84);
-                
+
                 IntPtr allPlayersPtr = ProcessMemory.Read<IntPtr>(GameAssemblyPtr, 0xDA5A60, 0x5C, 0, 0x24);
                 IntPtr allPlayers = ProcessMemory.Read<IntPtr>(allPlayersPtr, 0x08);
                 int playerCount = ProcessMemory.Read<int>(allPlayersPtr, 0x0C);
@@ -91,17 +114,15 @@ namespace AmongUsCapture
 
                 foreach (PlayerInfo pi in allPlayerInfos)
                 {
-                    Console.WriteLine($"Player ID {pi.PlayerId}; Name: {ProcessMemory.ReadString((IntPtr)pi.PlayerName)}; Color: {playerColors[pi.ColorId]}; Dead: " + ((pi.IsDead > 0) ? "yes": "no"));
+                    Console.WriteLine($"Player ID {pi.PlayerId}; Name: {ProcessMemory.ReadString((IntPtr)pi.PlayerName)}; Color: {playerColors[pi.ColorId]}; Dead: " + ((pi.IsDead > 0) ? "yes" : "no") + $"Impostor: {pi.IsImpostor}");
                 }
-
-
                 if (state != oldState)
                 {
                     Console.WriteLine("State changed to {0}", state);
                 }
 
                 oldState = state;
-                Thread.Sleep(250);
+                Thread.Sleep(2500);
             }
         }
 
