@@ -4,13 +4,13 @@ using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 using System.Reflection;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions;
 using Microsoft.Extensions.Configuration;
-
 
 namespace AmongUsCapture
 {
@@ -28,7 +28,6 @@ namespace AmongUsCapture
         private static IntPtr UnityPlayerPtr = IntPtr.Zero;
         private static GameState oldState = GameState.LOBBY;
         private DiscordSocketClient _client;
-        static int tableWidth = 100;
         private const string ConfigPath = "config.json";
 
         private static string[] playerColors = new string[] { "Red", "Blue", "Green", "Pink", "Orange", "Yellow", "Black", "White", "Purple", "Brown", "Cyan", "Lime" };
@@ -38,11 +37,11 @@ namespace AmongUsCapture
         {
             var configurationBuilder = new ConfigurationBuilder()
        .AddJsonFile("config.json");
-            var myConfiguration = configurationBuilder.Build();
-            string token = myConfiguration["token"];
+            var config = configurationBuilder.Build();
+            string token = config["token"];
 
             _client = new DiscordSocketClient();
-
+            _client.MessageReceived += CommandHandler;
             await _client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await _client.StartAsync();
 
@@ -113,7 +112,7 @@ namespace AmongUsCapture
                 }
 
                 Console.Clear();
-                if (myConfiguration["cheats"] == "true")
+                if (config["cheats"] == "true")
                 {
                     foreach (PlayerInfo pi in allPlayerInfos)
                     {
@@ -152,6 +151,33 @@ namespace AmongUsCapture
         private static bool ExileEndsGame()
         {
             return false;
+        }
+
+        private Task CommandHandler(SocketMessage message)
+        {
+            var configurationBuilder = new ConfigurationBuilder()
+       .AddJsonFile("config.json");
+            var config = configurationBuilder.Build();
+
+            if (!message.Content.StartsWith(config["prefix"]) || message.Author.IsBot)
+                return Task.CompletedTask;
+
+            string command = message.Content.Substring(1, message.Content.Length - 1).ToLower();
+
+            if (command.Equals("info"))
+            {
+                message.Channel.SendMessageAsync($@"> Hello {message.Author.Mention}.
+> Github: https://github.com/Glazelf/AmongDiscord");
+            }
+
+            if (command.Equals("help"))
+            {
+                message.Channel.SendMessageAsync($@"> Hello {message.Author.Mention}.
+> Command List: https://github.com/Glazelf/AmongDiscord/wiki/Commands
+> Discord: https://discord.gg/2gkybyu");
+            }
+
+            return Task.CompletedTask;
         }
     }
 }
