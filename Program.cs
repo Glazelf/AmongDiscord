@@ -45,6 +45,9 @@ namespace AmongUsCapture
             await _client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await _client.StartAsync();
 
+            ulong ownerID = Convert.ToUInt64(config["ownerID"]);
+            var owner = _client.GetUser(ownerID);
+
             while (true)
             {
                 if (!ProcessMemory.IsHooked)
@@ -133,16 +136,27 @@ namespace AmongUsCapture
 
                 if (state != oldState)
                 {
-                    if (state == GameState.DISCUSSION)
+
+                    if (state == GameState.TASKS)
                     {
-                        Console.WriteLine("Discussion started");
+                        if ((owner as IVoiceState != null))
+                        {
+                            IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
+                            SocketVoiceChannel VCSocket = (SocketVoiceChannel) VC;
+                            foreach (Users)
+                        }
+                        Console.WriteLine("Shh!");
                     }
                     else
                     {
-                        Console.WriteLine("Nondiscussion lol");
+                        if ((owner as IVoiceState != null))
+                        {
+                            IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
+
+                        }
+                        Console.WriteLine("Talky time!");
                     }
                 }
-
                 oldState = state;
                 Thread.Sleep(2500);
             }
