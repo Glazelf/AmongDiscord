@@ -157,7 +157,6 @@ namespace AmongUsCapture
                                 await MuteUser(guild, user);
                             }
                         }
-
                         Console.WriteLine("Shh!");
                     }
                     else
@@ -174,13 +173,12 @@ namespace AmongUsCapture
                             var VCUsers = VCSocket.Users;
                             foreach (var user in VCUsers)
                             {
-                                await MuteUser(guild, user);
+                                await UnmuteUser(guild, user);
                             }
                             Console.WriteLine("Talky time!");
                         }
                     }
-                oldState = state;
-                Thread.Sleep(2500);
+                Thread.Sleep(500);
             }
         }
 
