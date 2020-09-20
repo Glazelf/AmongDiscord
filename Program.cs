@@ -139,9 +139,8 @@ namespace AmongUsCapture
                 }
                 Console.WriteLine($"Game state: {state}");
 
-                if (state == GameState.TASKS)
-                {
-                    if (config["discord"] == "true" && clientReady == 1)
+                if (clientReady == 1)
+                    if (state == GameState.TASKS)
                     {
                         ulong ownerID = Convert.ToUInt64(config["ownerID"]);
                         ulong guildID = Convert.ToUInt64(config["guildID"]);
@@ -155,12 +154,10 @@ namespace AmongUsCapture
                         {
                             await MuteUser(guild, user);
                         }
+
+                        Console.WriteLine("Shh!");
                     }
-                    Console.WriteLine("Shh!");
-                }
-                else
-                {
-                    if (config["discord"] == "true" && clientReady == 1)
+                    else
                     {
                         ulong ownerID = Convert.ToUInt64(config["ownerID"]);
                         ulong guildID = Convert.ToUInt64(config["guildID"]);
@@ -174,9 +171,8 @@ namespace AmongUsCapture
                         {
                             await UnmuteUser(guild, user);
                         }
+                        Console.WriteLine("Talky time!");
                     }
-                    Console.WriteLine("Talky time!");
-                }
                 oldState = state;
                 Thread.Sleep(2500);
             }
