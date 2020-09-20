@@ -26,7 +26,7 @@ namespace AmongUsCapture
         }
         private static IntPtr GameAssemblyPtr = IntPtr.Zero;
         private static IntPtr UnityPlayerPtr = IntPtr.Zero;
-        private static GameState oldState = GameState.LOBBY;
+        // private static GameState oldState = GameState.LOBBY;
         private DiscordSocketClient _client;
         private const string ConfigPath = "config.json";
 
@@ -154,7 +154,10 @@ namespace AmongUsCapture
                             var VCUsers = VCSocket.Users;
                             foreach (var user in VCUsers)
                             {
-                                await MuteUser(guild, user);
+                                if (!user.IsMuted)
+                                {
+                                    await MuteUser(guild, user);
+                                }
                             }
                         }
                         Console.WriteLine("Shh!");
@@ -172,9 +175,10 @@ namespace AmongUsCapture
                         {
                             var VCUsers = VCSocket.Users;
                             foreach (var user in VCUsers)
-                            {
-                                await UnmuteUser(guild, user);
-                            }
+                                if (user.IsMuted)
+                                {
+                                    await UnmuteUser(guild, user);
+                                }
                             Console.WriteLine("Talky time!");
                         }
                     }
