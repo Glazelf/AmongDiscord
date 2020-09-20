@@ -149,10 +149,13 @@ namespace AmongUsCapture
                         var Socketowner = _client.GetUser(ownerID);
                         IVoiceChannel VC = (guildOwner as IVoiceState).VoiceChannel;
                         SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
-                        var VCUsers = VCSocket.Users;
-                        foreach (var user in VCUsers)
+                        if (VCSocket != null)
                         {
-                            await MuteUser(guild, user);
+                            var VCUsers = VCSocket.Users;
+                            foreach (var user in VCUsers)
+                            {
+                                await MuteUser(guild, user);
+                            }
                         }
 
                         Console.WriteLine("Shh!");
@@ -166,18 +169,21 @@ namespace AmongUsCapture
                         var Socketowner = _client.GetUser(ownerID);
                         IVoiceChannel VC = (guildOwner as IVoiceState).VoiceChannel;
                         SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
-                        var VCUsers = VCSocket.Users;
-                        foreach (var user in VCUsers)
+                        if (VCSocket != null)
                         {
-                            await UnmuteUser(guild, user);
+                            var VCUsers = VCSocket.Users;
+                            foreach (var user in VCUsers)
+                            {
+                                await MuteUser(guild, user);
+                            }
+                            Console.WriteLine("Talky time!");
                         }
-                        Console.WriteLine("Talky time!");
                     }
                 oldState = state;
                 Thread.Sleep(2500);
             }
-
         }
+
         private static bool ExileEndsGame()
         {
             return false;
