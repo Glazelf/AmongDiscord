@@ -45,8 +45,13 @@ namespace AmongUsCapture
             await _client.LoginAsync(TokenType.Bot, token).ConfigureAwait(false);
             await _client.StartAsync();
 
-            ulong ownerID = Convert.ToUInt64(config["ownerID"]);
-            var owner = _client.GetUser(ownerID);
+            var clientReady = 0;
+            _client.Ready += () =>
+            {
+                Console.WriteLine("Bot is connected!");
+                clientReady = 1;
+                return Task.CompletedTask;
+            };
 
             while (true)
             {
@@ -128,41 +133,55 @@ namespace AmongUsCapture
                         if (pi.IsImpostor > 0) Console.ForegroundColor = ConsoleColor.Cyan;
                         if (pi.IsDead > 0) Console.ForegroundColor = ConsoleColor.Red;
                         if (pi.Disconnected > 0) Console.ForegroundColor = ConsoleColor.Magenta;
-                        Console.WriteLine($"{IDString,-2} {NameString,-15} {ColorString,-15} {ImpostorString,-15} {DeadString,-10} {DisconnectedString}");
+                        Console.WriteLine($"{IDString,-2} {NameString,-18} {ColorString,-15} {ImpostorString,-15} {DeadString,-10} {DisconnectedString}");
                         Console.ForegroundColor = ConsoleColor.White;
                     }
                 }
                 Console.WriteLine($"Game state: {state}");
 
-                ulong guildID = Convert.ToUInt64(config["guildID"]);
-                var guild = _client.GetGuild(guildID);
                 if (state == GameState.TASKS)
                 {
-                    IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
-                    SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
-                    var VCUsers = VCSocket.Users;
-                    foreach (var user in VCUsers)
+                    if (config["discord"] == "true" && clientReady == 1)
                     {
-                        await MuteUser(guild, user);
+                        ulong ownerID = Convert.ToUInt64(config["ownerID"]);
+                        ulong guildID = Convert.ToUInt64(config["guildID"]);
+                        var guild = _client.GetGuild(guildID);
+                        var guildOwner = guild.GetUser(ownerID);
+                        var Socketowner = _client.GetUser(ownerID);
+                        IVoiceChannel VC = (guildOwner as IVoiceState).VoiceChannel;
+                        SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
+                        var VCUsers = VCSocket.Users;
+                        foreach (var user in VCUsers)
+                        {
+                            await MuteUser(guild, user);
+                        }
                     }
                     Console.WriteLine("Shh!");
                 }
                 else
                 {
-                    IVoiceChannel VC = (owner as IVoiceState).VoiceChannel;
-                    SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
-                    var VCUsers = VCSocket.Users;
-                    foreach (var user in VCUsers)
+                    if (config["discord"] == "true" && clientReady == 1)
                     {
-                        await UnmuteUser(guild, user);
+                        ulong ownerID = Convert.ToUInt64(config["ownerID"]);
+                        ulong guildID = Convert.ToUInt64(config["guildID"]);
+                        var guild = _client.GetGuild(guildID);
+                        var guildOwner = guild.GetUser(ownerID);
+                        var Socketowner = _client.GetUser(ownerID);
+                        IVoiceChannel VC = (guildOwner as IVoiceState).VoiceChannel;
+                        SocketVoiceChannel VCSocket = (SocketVoiceChannel)VC;
+                        var VCUsers = VCSocket.Users;
+                        foreach (var user in VCUsers)
+                        {
+                            await UnmuteUser(guild, user);
+                        }
                     }
                     Console.WriteLine("Talky time!");
                 }
                 oldState = state;
                 Thread.Sleep(2500);
             }
-        }
 
+        }
         private static bool ExileEndsGame()
         {
             return false;
@@ -195,13 +214,13 @@ namespace AmongUsCapture
             return Task.CompletedTask;
         }
 
-        public async Task MuteUser(IGuild guild, IUser user)
+        public Task MuteUser(IGuild guild, IUser user)
         {
-            await (user as IGuildUser).ModifyAsync(x => x.Mute = true);
+            return (user as IGuildUser).ModifyAsync(x => x.Mute = true);
         }
-        public async Task UnmuteUser(IGuild guild, IUser user)
+        public Task UnmuteUser(IGuild guild, IUser user)
         {
-            await (user as IGuildUser).ModifyAsync(x => x.Mute = false);
+            return (user as IGuildUser).ModifyAsync(x => x.Mute = false);
         }
     }
 }
