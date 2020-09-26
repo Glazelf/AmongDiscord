@@ -66,12 +66,17 @@ namespace AmongUsCapture
         }
         public static T Read<T>(IntPtr address, params int[] offsets) where T : unmanaged
         {
+            return ReadWithDefault<T>(address, default, offsets);
+        }
+
+        public static T ReadWithDefault<T>(IntPtr address, T defaultParam, params int[] offsets) where T : unmanaged
+        {
             if (process == null || address == IntPtr.Zero)
-                return default;
+                return defaultParam;
 
             int last = OffsetAddress(ref address, offsets);
             if (address == IntPtr.Zero)
-                return default;
+                return defaultParam;
 
             unsafe
             {
@@ -92,6 +97,17 @@ namespace AmongUsCapture
             int stringLength = Read<int>(address + 0x8);
             byte[] rawString = Read(address + 0xC, stringLength << 1);
             return System.Text.Encoding.Unicode.GetString(rawString);
+        }
+
+        public static IntPtr[] ReadArray(IntPtr address, int size)
+        {
+            byte[] bytes = Read(address, size * 4);
+            IntPtr[] ints = new IntPtr[size];
+            for (int i = 0; i < size; i++)
+            {
+                ints[i] = (IntPtr) BitConverter.ToUInt32(bytes, i * 4);
+            }
+            return ints;
         }
 
         private static byte[] Read(IntPtr address, int numBytes)
